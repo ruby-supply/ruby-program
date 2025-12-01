@@ -1,0 +1,96 @@
+use anchor_lang::prelude::*;
+use anchor_spl::token::TokenAccount;
+use crate::utils::Numeric;
+use super::Treasury;
+
+#[account]
+#[derive(Default)]
+pub struct Stake {
+    /// The authority of this stake account.
+    pub authority: Pubkey,
+
+    /// The balance of this stake account.
+    pub balance: u64,
+
+    /// The timestamp of last claim.
+    pub last_claim_at: i64,
+
+    /// The timestamp the last time this staker deposited.
+    pub last_deposit_at: i64,
+
+    /// The timestamp the last time this staker withdrew.
+    pub last_withdraw_at: i64,
+
+    /// The rewards factor last time rewards were updated on this stake account.
+    pub rewards_factor: Numeric,
+
+    /// The amount of TOKEN this staker can claim.
+    pub rewards: u64,
+
+    /// The total amount of TOKEN this staker has earned over its lifetime.
+    pub lifetime_rewards: u64,
+
+    /// Deprecated field - no longer used
+    pub is_seeker: u64,
+}
+
+impl Stake {
+    pub const LEN: usize = 8 + // discriminator
+        32 + // authority
+        8 + // balance
+        8 + // last_claim_at
+        8 + // last_deposit_at
+        8 + // last_withdraw_at
+        16 + // rewards_factor (i128)
+        8 + // rewards
+        8 + // lifetime_rewards
+        8; // is_seeker (deprecated)
+
+    pub fn claim(&mut self, amount: u64, clock: &Clock, treasury: &Treasury) -> u64 {
+        self.update_rewards(treasury);
+        let amount = self.rewards.min(amount);
+        self.rewards -= amount;
+        self.last_claim_at = clock.unix_timestamp;
+        amount
+    }
+
+    pub fn deposit(
+        &mut self,
+        amount: u64,
+        clock: &Clock,
+        treasury: &mut Treasury,
+        sender: &TokenAccount,
+    ) -> u64 {
+        self.update_rewards(treasury);
+        let amount = sender.amount.min(amount);
+        self.balance += amount;
+        self.last_deposit_at = clock.unix_timestamp;
+        treasury.total_staked += amount;
+        amount
+    }
+
+    pub fn withdraw(&mut self, amount: u64, clock: &Clock, treasury: &mut Treasury) -> u64 {
+        self.update_rewards(treasury);
+        let amount = self.balance.min(amount);
+        self.balance -= amount;
+        self.last_withdraw_at = clock.unix_timestamp;
+        treasury.total_staked -= amount;
+        amount
+    }
+
+    pub fn update_rewards(&mut self, treasury: &Treasury) {
+        // Accumulate rewards, weighted by stake balance.
+        if treasury.stake_rewards_factor > self.rewards_factor {
+            let accumulated_rewards = treasury.stake_rewards_factor - self.rewards_factor;
+            if accumulated_rewards < Numeric::ZERO {
+                panic!("Accumulated rewards is negative");
+            }
+            let personal_rewards = accumulated_rewards * Numeric::from_u64(self.balance);
+            self.rewards += personal_rewards.to_u64();
+            self.lifetime_rewards += personal_rewards.to_u64();
+        }
+
+        // Update this stake account's last seen rewards factor.
+        self.rewards_factor = treasury.stake_rewards_factor;
+    }
+}
