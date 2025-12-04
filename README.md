@@ -19,7 +19,7 @@ The protocol operates entirely onchain through smart contracts on Solana, provid
 ### Presale Details
 - Maximum 5 SOL contribution per person
 - Total presale cap: 200 SOL
-- Rate: 1 SOL = 200 Unrefined RUBY
+- Rate: 1 SOL = 200 RUBY
 - Presale funds are used entirely for initial liquidity
 
 ### Mining Emission Schedule
