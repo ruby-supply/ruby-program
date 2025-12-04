@@ -12,14 +12,14 @@ The protocol operates entirely onchain through smart contracts on Solana, provid
 
 ### Fixed Supply
 - **Maximum supply**: 6,000,000 RUBY
-- **No team allocation**, no private sale, no premine
+- **No team allocation**, no private sale, premine if public presale goals are not reached
 - All remaining RUBY must be mined through the emission schedule
 - The supply is permanently capped
 
 ### Presale Details
 - Maximum 5 SOL contribution per person
 - Total presale cap: 200 SOL
-- Rate: 1 SOL = 80 Unrefined RUBY
+- Rate: 1 SOL = 200 Unrefined RUBY
 - Presale funds are used entirely for initial liquidity
 
 ### Mining Emission Schedule
@@ -39,7 +39,6 @@ From losing squares each round:
 ## Key Features
 
 - **Mining**: Deploy SOL on blocks in a 5x5 grid and compete for RUBY rewards every round.
-- **Referrals**: Earn 1% of your referrals' claimed rewards as passive income.
 - **Buybacks**: Protocol automatically buys back RUBY using 8% of SOL mining revenue.
 - **Motherlode (ML)**: Progressive jackpot that increases by +3 RUBY per round until hit.
 - **Mini-Motherlode**: SOL reload rewards to help miners stay active.
